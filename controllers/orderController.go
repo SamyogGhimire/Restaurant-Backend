@@ -1,16 +1,15 @@
-package controller
+package controllers
 
 import (
 	"context"
 	"fmt"
-	"golang-restaurant-management/database"
 	"golang-restaurant-management/models"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/SamyogGhimire/Golang-Restaurant-Backend.git/database"
 	"github.com/gin-gonic/gin"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,7 +27,8 @@ func GetOrders() gin.HandlerFunc {
 		result, err := orderCollection.Find(context.TODO(), bson.M{})
 		defer cancel()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while listing order items"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error while listing the order items"})
+
 		}
 		var allOrders []bson.M
 		if err = result.All(ctx, &allOrders); err != nil {
@@ -63,13 +63,12 @@ func CreateOrder() gin.HandlerFunc {
 			return
 		}
 
-		validationErr := validate.Struct(order)
+		validateErr := validate.Struct(order)
 
-		if validationErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
+		if validateErr != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": validateErr.Error()})
 			return
 		}
-
 		if order.Table_id != nil {
 			err := tableCollection.FindOne(ctx, bson.M{"table_id": order.Table_id}).Decode(&table)
 			defer cancel()
@@ -79,12 +78,11 @@ func CreateOrder() gin.HandlerFunc {
 				return
 			}
 		}
-
 		order.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-		order.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		order.Updated_id, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 
 		order.ID = primitive.NewObjectID()
-		order.Order_id = order.ID.Hex()
+		order.Order_id = order.Id.Hex()
 
 		result, insertErr := orderCollection.InsertOne(ctx, order)
 
@@ -93,7 +91,6 @@ func CreateOrder() gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 			return
 		}
-
 		defer cancel()
 		c.JSON(http.StatusOK, result)
 	}
@@ -105,26 +102,22 @@ func UpdateOrder() gin.HandlerFunc {
 		var order models.Order
 
 		var updateObj primitive.D
-
-		orderId := c.Param("order_id")
 		if err := c.BindJSON(&order); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-
 		if order.Table_id != nil {
 			err := menuCollection.FindOne(ctx, bson.M{"tabled_id": order.Table_id}).Decode(&table)
 			defer cancel()
 			if err != nil {
-				msg := fmt.Sprintf("message:Menu was not found")
+				msg := fmt.Sprintf("message: Menu was not found")
 				c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 				return
 			}
-			updateObj = append(updateObj, bson.E{"menu", order.Table_id})
+			updateObj = append(updateObj, bson.E{Key: "menu", Value: order.Table_id})
 		}
-
 		order.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-		updateObj = append(updateObj, bson.E{"updated_at", order.Updated_at})
+		updateObj = append(updateObj, bson.E{Key: "updated_at", Value: order.Updated_at})
 
 		upsert := true
 
@@ -132,29 +125,25 @@ func UpdateOrder() gin.HandlerFunc {
 		opt := options.UpdateOptions{
 			Upsert: &upsert,
 		}
-
 		result, err := orderCollection.UpdateOne(
 			ctx,
 			filter,
 			bson.D{
-				{"$st", updateObj},
+				{Key: "$set", Value: updateObj},
 			},
 			&opt,
 		)
-
 		if err != nil {
 			msg := fmt.Sprintf("order item update failed")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 			return
 		}
-
 		defer cancel()
 		c.JSON(http.StatusOK, result)
 	}
 }
 
 func OrderItemOrderCreator(order models.Order) string {
-
 	order.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	order.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	order.ID = primitive.NewObjectID()
@@ -162,6 +151,5 @@ func OrderItemOrderCreator(order models.Order) string {
 
 	orderCollection.InsertOne(ctx, order)
 	defer cancel()
-
 	return order.Order_id
 }

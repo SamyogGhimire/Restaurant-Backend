@@ -1,14 +1,14 @@
-package controller
+package controllers
 
 import (
 	"context"
 	"fmt"
-	"golang-restaurant-management/database"
-	"golang-restaurant-management/models"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/SamyogGhimire/Golang-Restaurant-Backend.git/database"
+	"github.com/SamyogGhimire/Golang-Restaurant-Backend.git/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,14 +21,16 @@ var menuCollection *mongo.Collection = database.OpenCollection(database.Client, 
 func GetMenus() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-		result, err := menuCollection.Find(context.TODO(), bson.M{})
+		result, err := menuCollection.Find(context.TODO, bson.E{})
 		defer cancel()
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while listing the menu items"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "errror occured while listing the menu items"})
+
 		}
 		var allMenus []bson.M
 		if err = result.All(ctx, &allMenus); err != nil {
 			log.Fatal(err)
+
 		}
 		c.JSON(http.StatusOK, allMenus)
 	}
@@ -44,6 +46,7 @@ func GetMenu() gin.HandlerFunc {
 		defer cancel()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while fetching the menu"})
+
 		}
 		c.JSON(http.StatusOK, menu)
 	}
@@ -109,18 +112,18 @@ func UpdateMenu() gin.HandlerFunc {
 				return
 			}
 
-			updateObj = append(updateObj, bson.E{"start_date", menu.Start_Date})
-			updateObj = append(updateObj, bson.E{"end_date", menu.End_Date})
+			updateObj = append(updateObj, bson.E{Key: "start_date", Value: menu.Start_Date})
+			updateObj = append(updateObj, bson.E{Key: "end_date", Value: menu.End_Date})
 
 			if menu.Name != "" {
-				updateObj = append(updateObj, bson.E{"name", menu.Name})
+				updateObj = append(updateObj, bson.E{Key: "name", Value: menu.Name})
 			}
 			if menu.Category != "" {
-				updateObj = append(updateObj, bson.E{"name", menu.Category})
+				updateObj = append(updateObj, bson.E{Key: "name", Value: menu.Category})
 			}
 
 			menu.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-			updateObj = append(updateObj, bson.E{"updated_at", menu.Updated_at})
+			updateObj = append(updateObj, bson.E{Key: "updated_at", Value: menu.Updated_at})
 
 			upsert := true
 
@@ -132,7 +135,7 @@ func UpdateMenu() gin.HandlerFunc {
 				ctx,
 				filter,
 				bson.D{
-					{"$set", updateObj},
+					{Key: "$set", Value: updateObj},
 				},
 				&opt,
 			)
