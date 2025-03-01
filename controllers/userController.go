@@ -3,12 +3,13 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"golang-restaurant-management/database"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/SamyogGhimire/Restaurant-Backend/database"
+	"github.com/SamyogGhimire/Restaurant-Backend/helpers"
 	"github.com/SamyogGhimire/Restaurant-Backend/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -54,6 +55,23 @@ func GetUsers() gin.HandlerFunc {
 			log.Fatal(err)
 		}
 		c.JSON(http.StatusOK, allUsers[0])
+	}
+}
+
+func GetUser() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		userId := c.Param("user_id")
+
+		var user models.User
+
+		err := userCollection.FindOne(ctx, bson.M{"user_id": userId}).Decode(&user)
+
+		defer cancel()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "error occured while listing user items"})
+		}
+		c.JSON(http.StatusOK, user)
 	}
 }
 
@@ -147,7 +165,7 @@ func Login() gin.HandlerFunc {
 			return
 		}
 		//Token generation
-		token.refreshToken, _ := helpers.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, foundUser.User_id)
+		token, refreshToken, _ := helpers.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, foundUser.User_id)
 
 		helpers.UpdateAllTokens(token, refreshToken, foundUser.User_id)
 

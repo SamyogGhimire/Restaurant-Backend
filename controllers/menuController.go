@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/SamyogGhimire/Golang-Restaurant-Backend.git/database"
-	"github.com/SamyogGhimire/Golang-Restaurant-Backend.git/models"
+	"github.com/SamyogGhimire/Restaurant-Backend/database"
+	"github.com/SamyogGhimire/Restaurant-Backend/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,7 +21,7 @@ var menuCollection *mongo.Collection = database.OpenCollection(database.Client, 
 func GetMenus() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-		result, err := menuCollection.Find(context.TODO, bson.E{})
+		result, err := menuCollection.Find(context.TODO(), bson.E{})
 		defer cancel()
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "errror occured while listing the menu items"})

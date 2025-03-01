@@ -3,14 +3,15 @@ package controllers
 import (
 	"context"
 	"fmt"
+
 	"log"
 	"math"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/SamyogGhimire/Restaurant-Backend.git/database"
-	"github.com/SamyogGhimire/Restaurant-Backend.git/models"
+	"github.com/SamyogGhimire/Restaurant-Backend/database"
+	"github.com/SamyogGhimire/Restaurant-Backend/models"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,7 +21,8 @@ import (
 )
 
 var foodCollection *mongo.Collection = database.OpenCollection(database.Client, "food")
-var menuCollection *mongo.Collection = database.OpenCollection(database.Client, "menu")
+
+// var menuCollection *mongo.Collection = database.OpenCollection(database.Client, "menu")
 var validate = validator.New()
 
 func GetFoods() gin.HandlerFunc {
@@ -187,7 +189,7 @@ func UpdateFood() gin.HandlerFunc {
 			ctx,
 			filter,
 			bson.D{
-				{"$set", updateObj},
+				{Key: "$set", Value: updateObj},
 			},
 			&opt,
 		)

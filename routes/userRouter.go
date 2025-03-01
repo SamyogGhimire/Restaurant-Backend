@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/SamyogGhimire/Restaurant-Backend/controllers"
 	"github.com/gin-gonic/gin"
 )
 

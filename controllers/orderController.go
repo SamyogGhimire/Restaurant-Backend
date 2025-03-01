@@ -3,12 +3,12 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"golang-restaurant-management/models"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/SamyogGhimire/Golang-Restaurant-Backend.git/database"
+	"github.com/SamyogGhimire/Restaurant-Backend/database"
+	"github.com/SamyogGhimire/Restaurant-Backend/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -79,10 +79,10 @@ func CreateOrder() gin.HandlerFunc {
 			}
 		}
 		order.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-		order.Updated_id, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+		order.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 
 		order.ID = primitive.NewObjectID()
-		order.Order_id = order.Id.Hex()
+		order.Order_id = order.ID.Hex()
 
 		result, insertErr := orderCollection.InsertOne(ctx, order)
 
@@ -121,7 +121,7 @@ func UpdateOrder() gin.HandlerFunc {
 
 		upsert := true
 
-		filter := bson.M{"order_id": orderId}
+		filter := bson.M{"order_id": order.Order_id}
 		opt := options.UpdateOptions{
 			Upsert: &upsert,
 		}

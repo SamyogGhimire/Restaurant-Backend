@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/SamyogGhimire/Golang-Restaurant-Backend.git/database"
-	"github.com/SamyogGhimire/Golang-Restaurant-Backend.git/models"
+	"github.com/SamyogGhimire/Restaurant-Backend/database"
+	"github.com/SamyogGhimire/Restaurant-Backend/models"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -19,7 +20,7 @@ type OrderItemsPack struct {
 	Order_items []models.OrderItem
 }
 
-var orderItemCollection *mongo.Collction = database.OpenCollection(database.Client, "orderItem")
+var orderItemCollection *mongo.Collection = database.OpenCollection(database.Client, "orderItem")
 
 func GetOrderItems() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -131,7 +132,7 @@ func GetOrderItemById() gin.HandlerFunc {
 
 		var orderItem models.OrderItem
 
-		err := orderItemCollection.FindOne(ctx, bson.M{"orderItem_id"}).Decode(&orderItemId)
+		err := orderItemCollection.FindOne(ctx, bson.M{"order_item_id": orderItemId}).Decode(&orderItem)
 		defer cancel()
 
 		if err != nil {
@@ -195,7 +196,7 @@ func UpdateOrderItem() gin.HandlerFunc {
 func CreateOrderItem() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-		var orderItemPack OrderItemPack
+		var orderItemPack OrderItemsPack
 		var order models.Order
 
 		if err := c.BindJSON(&orderItemPack); err != nil {
@@ -214,22 +215,23 @@ func CreateOrderItem() gin.HandlerFunc {
 			if validationErr != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
 				return
+			}
+			orderItem.ID = primitive.NewObjectID()
+			orderItem.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+			orderItem.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
+			orderItem.Order_item_id = orderItem.ID.Hex()
+
+			var num = toFixed(*orderItem.Unit_price, 2)
+			orderItem.Unit_price = &num
+			orderItemsToBeInserted = append(orderItemsToBeInserted, orderItem)
 		}
-		orderItem.IDprimitive.NewObjectID()
-		orderItem.Created_at,_=time.Parse(time.RFC3339, tine.Now().Format(time.RFC3339))
-		orderItem.Updated_at,_=time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-		orderItem.Order_item_id=orderItem.ID.Hex()
+		insertedOrderItems, err := orderItemCollection.InsertMany(ctx, orderItemsToBeInserted)
 
-		var num=toFixed(*orderItem.Unit_price,2)
-		orderItem.Unit_price=&num
-		orderItemsToBeInserted=append(orderItemsToBeInserted, orderItem)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer cancel()
+
+		c.JSON(http.StatusOK, insertedOrderItems)
 	}
-	insertedOrderItems, err:=orderItemCollection.InsertMany(ctx,orderItemsToBeInserted)
-
-	if err!=nil{
-		log.Fatal(err)
-	}
-	defer cancel()
-
-	c.JSON(http.StatusOK, insertedOrderItems)
 }
