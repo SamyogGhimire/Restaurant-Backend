@@ -68,7 +68,7 @@ func GetFoods() gin.HandlerFunc {
 	}
 }
 
-func GetFood() gin.HandlerFunc {
+func GetFoodById() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()

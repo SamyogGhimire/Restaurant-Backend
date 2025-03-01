@@ -40,7 +40,7 @@ func GetUsers() gin.HandlerFunc {
 			{Key: "$project", Value: bson.D{
 				{Key: "_id", Value: 0},
 				{Key: "total_count", Value: 1},
-				{Key: "user_items", Value: bson.D{{Key: "$slice", Value: []interface{}{Key: "$data", Value: startIndex, recordPerPage}}}},
+				{Key: "user_items", Value: bson.D{{Key: "$slice", Value: []interface{}{"$data", startIndex, recordPerPage}}}},
 			}}}
 		result, err := userCollection.Aggregate(ctx, mongo.Pipeline{
 			matchStage, projectStage})
@@ -71,7 +71,7 @@ func SignUp() gin.HandlerFunc {
 		//validate data based on user struct
 		validationErr := validate.Struct(user)
 		if validationErr != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": validateErr.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
 			return
 		}
 		//Check if the email has already been used by another user
@@ -88,7 +88,7 @@ func SignUp() gin.HandlerFunc {
 
 		//check if phone number is used by another user
 
-		count, err = user.Collection.CountDocuments(ctx, bson.M{"phone": user.Phone})
+		count, err = userCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
 		defer cancel()
 		if err != nil {
 			log.Panic(err)
@@ -122,43 +122,55 @@ func SignUp() gin.HandlerFunc {
 	}
 }
 
-func Login() gin.HandlerFunc{
-	return func (c *gin.Context){
-		car ctx, cancel=context.WithTimeout(context.Background(), 100 *time.Second)
-		var user models.user
+func Login() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		var user models.User
 		var foundUser models.User
 
-		if err:=c.BindJSON(&user); err!=nil{
-			c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
+		if err := c.BindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		err:=userCollection.FindOne(ctx, bson.M{"email":user.Email}).Decode(&foundUser)
+		err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
 		defer cancel()
-		if err!=nil{
-			c.JSON(http.StatusInternalServerError, gin.H{"error":"user not found, login credentials incorrect"})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user not found, login credentials incorrect"})
 			return
 		}
 
-	//password verification
-	passwordIsValid, msg:=VerifyPassword(*user.Password, *foundUser.Password)
-	defer cancel()
-	if passwordIsValid!=true{
-		c.JSON(http.StatusInternalServerError, gin.H{"error":msg})
-		return
-	}
-	//Token generation
-	token.refreshToken,_:=helper.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, foundUser.User_id)
+		//password verification
+		passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
+		defer cancel()
+		if passwordIsValid != true {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
+			return
+		}
+		//Token generation
+		token.refreshToken, _ := helpers.GenerateAllTokens(*foundUser.Email, *foundUser.First_name, *foundUser.Last_name, foundUser.User_id)
 
-	helpers.UpdateAllTokens(token, refreshToken, foundUser.User_id)
+		helpers.UpdateAllTokens(token, refreshToken, foundUser.User_id)
 
-	c.JSON(http.StatusOK, foundUser)
+		c.JSON(http.StatusOK, foundUser)
 	}
 }
 
-func HashPassword(password string)string{
-	bytes, err:=bcrypt.GenerateFromPassword([]byte(password), 14)
-	if err!=nil{
+func HashPassword(password string) string {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	if err != nil {
 		log.Panic(err)
 	}
 	return string(bytes)
+}
+
+func VerifyPassword(userPassword string, providedPassword string) (bool, string) {
+	err := bcrypt.CompareHashAndPassword([]byte(providedPassword), []byte(userPassword))
+	check := true
+	msg := ""
+	if err != nil {
+		msg = fmt.Sprintf("Login or password is incorrect")
+		check = false
+	}
+	return check, msg
+
 }

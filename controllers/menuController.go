@@ -36,7 +36,7 @@ func GetMenus() gin.HandlerFunc {
 	}
 }
 
-func GetMenu() gin.HandlerFunc {
+func GetMenuById() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		menuId := c.Param("menu_id")
