@@ -146,7 +146,7 @@ func GetOrderItemById() gin.HandlerFunc {
 func UpdateOrderItem() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
-
+		defer cancel()
 		var orderItem models.OrderItem
 
 		orderItemId := c.Param("order_item_id")
@@ -155,7 +155,7 @@ func UpdateOrderItem() gin.HandlerFunc {
 		var updateObj primitive.D
 
 		if orderItem.Unit_price != nil {
-			updateObj = append(updateObj, bson.E{Key: "unit_price", Value: *&orderItem.Unit_price})
+			updateObj = append(updateObj, bson.E{Key: "unit_price", Value: orderItem.Unit_price})
 		}
 
 		if orderItem.Quantity != nil {
@@ -201,7 +201,7 @@ func CreateOrderItem() gin.HandlerFunc {
 
 		if err := c.BindJSON(&orderItemPack); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
+
 		}
 		order.Order_Date, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		orderItemsToBeInserted := []interface{}{}
@@ -214,7 +214,7 @@ func CreateOrderItem() gin.HandlerFunc {
 
 			if validationErr != nil {
 				c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
-				return
+
 			}
 			orderItem.ID = primitive.NewObjectID()
 			orderItem.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
