@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/SamyogGhimire/Restaurant-Backend/helpers"
@@ -12,7 +11,7 @@ func Authentication() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		clientToken := c.Request.Header.Get("token")
 		if clientToken == "" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("No Authorization header provided")})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "No Authorization header provided"})
 			c.Abort()
 			return
 		}
