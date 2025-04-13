@@ -19,7 +19,7 @@ A RESTful backend API built in **Go (Golang)** to manage restaurant operations s
   - Orders
   - Menu Items
   - Tables
-  - Reservations
+  - Foods
 - ✅ Role-based access control (e.g. Admin, Staff, Customer)
 - ✅ RESTful API design
 - ✅ Secure password hashing
@@ -30,10 +30,10 @@ A RESTful backend API built in **Go (Golang)** to manage restaurant operations s
 ## 🛠️ Tech Stack
 
 - **Language:** Go (Golang)
-- **Web Framework:** net/http or Gin/Gorilla Mux (specify yours)
-- **Database:** MongoDB / PostgreSQL / MySQL (specify)
+- **Web Framework:** Gin
+- **Database:** MongoDB
 - **Authentication:** JWT (JSON Web Tokens)
-- **Tools:** Postman for API testing, dotenv for config
+- **Tools:** Postman for API testing
 
 ---
 
