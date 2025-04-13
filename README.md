@@ -6,9 +6,9 @@ A RESTful backend API built in **Go (Golang)** to manage restaurant operations s
 
 ## 📚 Table of Contents
 
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Postman Collection](#-postman-collection)
+- [Features]
+- [Tech Stack]
+- [Postman Collection]
 ---
 
 ## 🚀 Features
