@@ -8,9 +8,6 @@ A RESTful backend API built in **Go (Golang)** to manage restaurant operations s
 
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
-- [Installation](#-installation)
-- [Environment Variables](#-environment-variables)
-- [API Documentation](#-api-documentation)
 - [Postman Collection](#-postman-collection)
 ---
 
@@ -40,6 +37,9 @@ A RESTful backend API built in **Go (Golang)** to manage restaurant operations s
 
 ---
 
+🔁 Postman Collection
+Download and import the collection:
+https://.postman.co/workspace/My-Workspace~d809271d-efc4-4051-82d2-e16476be4ab9/collection/39886165-68b507d5-9545-4175-9f7f-b9877071f515?action=share&creator=39886165
 
 ### Clone the repository
 
@@ -47,8 +47,4 @@ A RESTful backend API built in **Go (Golang)** to manage restaurant operations s
 git clone https://github.com/SamyogGhimire/Restaurant-Backend.git
 
 
-
-### 🔁 Postman Collection
-Download and import the collection:
-https://.postman.co/workspace/My-Workspace~d809271d-efc4-4051-82d2-e16476be4ab9/collection/39886165-68b507d5-9545-4175-9f7f-b9877071f515?action=share&creator=39886165
 
